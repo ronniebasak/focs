@@ -16,7 +16,11 @@ class Game {
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0] // black side a8,b8,c8,d8,e8,f8,g8,h8
         ]
-
+        this.enpassant = false; // will contain coordinate
+        this.isWhiteKingCastle = true;
+        this.isWhiteQueenCastle = true;
+        this.isBlackKingCastle = true;
+        this.isBlackQueenCastle = true;
 
         this.setup()
     }
@@ -32,8 +36,8 @@ class Game {
         this.board[0][2] = new Bishop("c1", "white")
         this.board[0][5] = new Bishop("f1", "white")
 
-        this.board[0][3] = new King("d1", "white")
-        this.board[0][4] = new Queen("e1", "white")
+        this.board[0][4] = new King("e1", "white")
+        this.board[0][3] = new Queen("d1", "white")
 
 
         /// PIECES: black
@@ -46,9 +50,8 @@ class Game {
         this.board[7][2] = new Bishop("c8", "black")
         this.board[7][5] = new Bishop("f8", "black")
 
-        this.board[7][3] = new King("d8", "black")
-        this.board[7][4] = new Queen("e8", "black")
-
+        this.board[7][4] = new King("e8", "black")
+        this.board[7][3] = new Queen("d8", "black")
 
         // PAWNS: white
         this.board[1][0] = new Pawn("a2", "white");
