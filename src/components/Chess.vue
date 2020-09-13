@@ -16,12 +16,12 @@
           />
           <img
             class="piece"
-            :src="require('@/assets/Sprites/'+chessInst[i-1][j-1].sprite)"
-            v-if="chessInst && chessInst[i-1] && chessInst[i-1][j-1] && !facingMode"
+            :src="require('@/assets/Sprites/'+chessInst[i-1][8-j].sprite)"
+            v-if="chessInst && chessInst[i-1] && chessInst[i-1][8-j] && !facingMode"
           />
 
           <div class="dot" v-if="dotFlag && dotBoard[8-i][j-1] && facingMode"></div>
-          <div class="dot" v-if="dotFlag && dotBoard[i-1][j-1] && !facingMode"></div>
+          <div class="dot" v-if="dotFlag && dotBoard[i-1][8-j] && !facingMode"></div>
         </div>
       </template>
     </template>
