@@ -26,10 +26,10 @@ class Game {
     }
 
 
-    isSquareEmpty(coordinate){ // literally empty
+    isSquareEmpty(coordinate) { // literally empty
         return this.board[coordinate[0]][coordinate[1]] == 0;
     }
-    isSquareOccupied(coordinate, color){ // occupied by same color
+    isSquareOccupied(coordinate, color) { // occupied by same color
         return this.isSquareEmpty(coordinate) || this.board[coordinate[0]][coordinate[1]].color != color;
     }
 
@@ -51,7 +51,7 @@ class Game {
         /// PIECES: black
         this.board[7][0] = new Rook("a8", "black")
         this.board[7][7] = new Rook("h8", "black")
-        
+
         this.board[7][1] = new Knight("b8", "black")
         this.board[7][6] = new Knight("g8", "black")
 
@@ -88,41 +88,117 @@ class Game {
      * @param {array} targetSquareCoord target square coordinates
      * @param {array} destinationSqaureCoord destination square coordinates 
      */
-    isMoveLegal(pieceInst, targetSquareCoord, destinationSqaureCoord){
-        if(this.turn == 0 && pieceInst.color == "black") return false;
-        if(this.turn == 1 && pieceInst.color == "white") return false;
-        if(!this.isSquareOccupied(destinationSqaureCoord, pieceInst.color)) return false;
+    isMoveLegal(pieceInst, targetSquareCoord, destinationSqaureCoord) {
+        if (this.turn == 0 && pieceInst.color == "black") return false;
+        if (this.turn == 1 && pieceInst.color == "white") return false;
+        if (!this.isSquareOccupied(destinationSqaureCoord, pieceInst.color)) return false;
 
-        if(pieceInst.selfId == "Pawn"){
-            let direction = pieceInst.color == "white" ? 1: -1;
-            let initRank = pieceInst.color == "white" ? 1: 6;
+        if (pieceInst instanceof Pawn) {
+            let direction = pieceInst.color == "white" ? 1 : -1;
+            let initRank = pieceInst.color == "white" ? 1 : 6;
 
-            if(targetSquareCoord[1] == destinationSqaureCoord[1] && targetSquareCoord[0]+direction == destinationSqaureCoord[0] ){
+            if (targetSquareCoord[1] == destinationSqaureCoord[1] && targetSquareCoord[0] + direction == destinationSqaureCoord[0]) {
                 return this.isSquareEmpty(destinationSqaureCoord);
             }
-            else if (Math.abs(targetSquareCoord[1]-destinationSqaureCoord[1]) == 1 && targetSquareCoord[0]+direction == destinationSqaureCoord[0] ) { // capture
+            else if (Math.abs(targetSquareCoord[1] - destinationSqaureCoord[1]) == 1 && targetSquareCoord[0] + direction == destinationSqaureCoord[0]) { // capture
                 return !this.isSquareEmpty(destinationSqaureCoord)
             }
-            else if(targetSquareCoord[0] == initRank && targetSquareCoord[1]==destinationSqaureCoord[1] && targetSquareCoord[0]+2*direction == destinationSqaureCoord[0] && this.isSquareEmpty([targetSquareCoord[0]+direction, targetSquareCoord[1]]) ){
-                this.enpassant = [targetSquareCoord[0]+direction, targetSquareCoord[1]];
+            else if (targetSquareCoord[0] == initRank && targetSquareCoord[1] == destinationSqaureCoord[1] && targetSquareCoord[0] + 2 * direction == destinationSqaureCoord[0] && this.isSquareEmpty([targetSquareCoord[0] + direction, targetSquareCoord[1]])) {
+                this.enpassant = [targetSquareCoord[0] + direction, targetSquareCoord[1]];
                 return this.isSquareEmpty(destinationSqaureCoord);
             }
-            else return false
         }
 
-        if(pieceInst.selfId == "Knight"){
+        if (pieceInst instanceof Knight) {
             return (
-                Math.abs(destinationSqaureCoord[0]-targetSquareCoord[0]) == 2 && Math.abs(destinationSqaureCoord[1]-targetSquareCoord[1])==1
-                || Math.abs(destinationSqaureCoord[0]-targetSquareCoord[0]) == 1 && Math.abs(destinationSqaureCoord[1]-targetSquareCoord[1])==2
-                )
+                Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0]) == 2 && Math.abs(destinationSqaureCoord[1] - targetSquareCoord[1]) == 1
+                || Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0]) == 1 && Math.abs(destinationSqaureCoord[1] - targetSquareCoord[1]) == 2
+            )
         }
 
-        if(pieceInst.selfId == "Bishop"){
-            if( Math.abs(destinationSqaureCoord[0]-targetSquareCoord[0]) == Math.abs(destinationSqaureCoord[1]-targetSquareCoord[1]) ){
+        if (pieceInst instanceof Bishop) {
+            if (Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0]) == Math.abs(destinationSqaureCoord[1] - targetSquareCoord[1])) {
+                // check if all squares from target to destination are empty
+                let dx = (destinationSqaureCoord[0] - targetSquareCoord[0]) / Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0])
+                let dy = (destinationSqaureCoord[1] - targetSquareCoord[1]) / Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0])
+                let dist = Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0])
+
+                if (dist == 1) return true;
+                for (let i = 1; i < dist; i++) {
+                    console.log("TSQ", [targetSquareCoord[0] + (i * dx), targetSquareCoord[1] + (i * dy)], this.isSquareEmpty([targetSquareCoord[0] + (i * dx), targetSquareCoord[1] + (i * dy)]))
+                    if (!this.isSquareEmpty([targetSquareCoord[0] + (i * dx), targetSquareCoord[1] + (i * dy)])) {
+                        return false; // prevent jumping
+                    }
+                }
                 return true
             }
         }
 
+        if (pieceInst instanceof Rook) {
+            if (destinationSqaureCoord[0] == targetSquareCoord[0] && destinationSqaureCoord[1] != targetSquareCoord[1]) {
+                let dist = Math.abs(destinationSqaureCoord[1] - targetSquareCoord[1]);
+                let start = Math.min(destinationSqaureCoord[1], targetSquareCoord[1]);
+                let end = Math.max(destinationSqaureCoord[1], targetSquareCoord[1]);
+
+                for (let i = start + 1; i < end; i++) {
+                    if (!this.isSquareEmpty([destinationSqaureCoord[0], i])) return false
+                }
+                return true
+            } else if (destinationSqaureCoord[1] == targetSquareCoord[1] && destinationSqaureCoord[0] != targetSquareCoord[0]) {
+                let dist = Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0]);
+                let start = Math.min(destinationSqaureCoord[0], targetSquareCoord[0]);
+                let end = Math.max(destinationSqaureCoord[0], targetSquareCoord[0]);
+
+                for (let i = start + 1; i < end; i++) {
+                    if (!this.isSquareEmpty([i, destinationSqaureCoord[1]])) return false
+                }
+                return true
+            }
+        }
+
+
+        if (pieceInst instanceof Queen) {
+            if (Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0]) == Math.abs(destinationSqaureCoord[1] - targetSquareCoord[1])) {
+                // check if all squares from target to destination are empty
+                let dx = (destinationSqaureCoord[0] - targetSquareCoord[0]) / Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0])
+                let dy = (destinationSqaureCoord[1] - targetSquareCoord[1]) / Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0])
+                let dist = Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0])
+
+                if (dist == 1) return true;
+                for (let i = 1; i < dist; i++) {
+                    console.log("TSQ", [targetSquareCoord[0] + (i * dx), targetSquareCoord[1] + (i * dy)], this.isSquareEmpty([targetSquareCoord[0] + (i * dx), targetSquareCoord[1] + (i * dy)]))
+                    if (!this.isSquareEmpty([targetSquareCoord[0] + (i * dx), targetSquareCoord[1] + (i * dy)])) {
+                        return false; // prevent jumping
+                    }
+                }
+                return true
+            }
+            else if (destinationSqaureCoord[0] == targetSquareCoord[0] && destinationSqaureCoord[1] != targetSquareCoord[1]) {
+                let dist = Math.abs(destinationSqaureCoord[1] - targetSquareCoord[1]);
+                let start = Math.min(destinationSqaureCoord[1], targetSquareCoord[1]);
+                let end = Math.max(destinationSqaureCoord[1], targetSquareCoord[1]);
+
+                for (let i = start + 1; i < end; i++) {
+                    if (!this.isSquareEmpty([destinationSqaureCoord[0], i])) return false
+                }
+                return true
+            } else if (destinationSqaureCoord[1] == targetSquareCoord[1] && destinationSqaureCoord[0] != targetSquareCoord[0]) {
+                let dist = Math.abs(destinationSqaureCoord[0] - targetSquareCoord[0]);
+                let start = Math.min(destinationSqaureCoord[0], targetSquareCoord[0]);
+                let end = Math.max(destinationSqaureCoord[0], targetSquareCoord[0]);
+
+                for (let i = start + 1; i < end; i++) {
+                    if (!this.isSquareEmpty([i, destinationSqaureCoord[1]])) return false
+                }
+                return true
+            }
+        }
+
+        if(pieceInst instanceof King){
+            if((destinationSqaureCoord[0] == targetSquareCoord[0] && Math.abs(destinationSqaureCoord[1]-targetSquareCoord[1])==1 )) return true
+            else if((destinationSqaureCoord[1] == targetSquareCoord[1] && Math.abs(destinationSqaureCoord[0]-targetSquareCoord[0])==1 )) return true
+            else if(Math.abs(targetSquareCoord[0]-destinationSqaureCoord[0]) == 1 == Math.abs(targetSquareCoord[1]-destinationSqaureCoord[1])) return true
+        }
         return false;
     }
     /**\
@@ -130,7 +206,7 @@ class Game {
      * targetSquare is the origin square of piece either as array [0,0] or as chess coordinate "a4", "b3" etc
      * destinationSqaure is the destination square of piece
      */
-    movePiece(targetSquare = [0,0], destinationSqaure = [0,0]){
+    movePiece(targetSquare = [0, 0], destinationSqaure = [0, 0]) {
         let targetSquareCoord = targetSquare;
         let destinationSqaureCoord = destinationSqaure;
 
@@ -143,9 +219,9 @@ class Game {
 
         let pieceInst = this.board[tRank][tFile];
 
-        if(pieceInst instanceof Piece){
+        if (pieceInst instanceof Piece) {
             let epState = this.enpassant;
-            if(this.isMoveLegal(pieceInst, targetSquareCoord, destinationSqaureCoord)){
+            if (this.isMoveLegal(pieceInst, targetSquareCoord, destinationSqaureCoord)) {
                 console.log("LEGAL MOVE");
                 // move
                 // if(this.epState == this.enpassant && this.enpassant){
@@ -154,10 +230,10 @@ class Game {
                 // } else {
                 //     console.log("Allow ENPASSANT", this.enpassant)
                 // }
-                this.board[tRank][tFile] = 0; 
+                this.board[tRank][tFile] = 0;
                 this.board[dRank][dFile] = pieceInst;
 
-                this.turn = (this.turn+1)%2;
+                this.turn = (this.turn + 1) % 2;
             } else {
                 console.log("ILLEGAL MOVE");
             }
