@@ -25,6 +25,14 @@ class Game {
         this.setup()
     }
 
+
+    isSquareEmpty(coordinate){ // literally empty
+        return this.board[coordinate[0]][coordinate[1]] == 0;
+    }
+    isSquareOccupied(coordinate, color){ // occupied by same color
+        return this.isSquareEmpty(coordinate) || this.board[coordinate[0]][coordinate[1]].color != color;
+    }
+
     setup() {
         /// PIECES: white
         this.board[0][0] = new Rook("a1", "white")
@@ -72,6 +80,88 @@ class Game {
         this.board[6][5] = new Pawn("f7", "black");
         this.board[6][6] = new Pawn("g7", "black");
         this.board[6][7] = new Pawn("h7", "black");
+    }
+
+    /**
+     * @returns {Boolean} is this move legal or not
+     * @param {Piece} pieceInst Piece instance
+     * @param {array} targetSquareCoord target square coordinates
+     * @param {array} destinationSqaureCoord destination square coordinates 
+     */
+    isMoveLegal(pieceInst, targetSquareCoord, destinationSqaureCoord){
+        if(this.turn == 0 && pieceInst.color == "black") return false;
+        if(this.turn == 1 && pieceInst.color == "white") return false;
+        if(!this.isSquareOccupied(destinationSqaureCoord, pieceInst.color)) return false;
+
+        if(pieceInst.selfId == "Pawn"){
+            let direction = pieceInst.color == "white" ? 1: -1;
+            let initRank = pieceInst.color == "white" ? 1: 6;
+
+            if(targetSquareCoord[1] == destinationSqaureCoord[1] && targetSquareCoord[0]+direction == destinationSqaureCoord[0] ){
+                return this.isSquareEmpty(destinationSqaureCoord);
+            }
+            else if (Math.abs(targetSquareCoord[1]-destinationSqaureCoord[1]) == 1 && targetSquareCoord[0]+direction == destinationSqaureCoord[0] ) { // capture
+                return !this.isSquareEmpty(destinationSqaureCoord)
+            }
+            else if(targetSquareCoord[0] == initRank && targetSquareCoord[1]==destinationSqaureCoord[1] && targetSquareCoord[0]+2*direction == destinationSqaureCoord[0] && this.isSquareEmpty([targetSquareCoord[0]+direction, targetSquareCoord[1]]) ){
+                this.enpassant = [targetSquareCoord[0]+direction, targetSquareCoord[1]];
+                return this.isSquareEmpty(destinationSqaureCoord);
+            }
+            else return false
+        }
+
+        if(pieceInst.selfId == "Knight"){
+            return (
+                Math.abs(destinationSqaureCoord[0]-targetSquareCoord[0]) == 2 && Math.abs(destinationSqaureCoord[1]-targetSquareCoord[1])==1
+                || Math.abs(destinationSqaureCoord[0]-targetSquareCoord[0]) == 1 && Math.abs(destinationSqaureCoord[1]-targetSquareCoord[1])==2
+                )
+        }
+
+        if(pieceInst.selfId == "Bishop"){
+            if( Math.abs(destinationSqaureCoord[0]-targetSquareCoord[0]) == Math.abs(destinationSqaureCoord[1]-targetSquareCoord[1]) ){
+                return true
+            }
+        }
+
+        return false;
+    }
+    /**\
+     * @returns {Boolean} if move has been made successfully or not
+     * targetSquare is the origin square of piece either as array [0,0] or as chess coordinate "a4", "b3" etc
+     * destinationSqaure is the destination square of piece
+     */
+    movePiece(targetSquare = [0,0], destinationSqaure = [0,0]){
+        let targetSquareCoord = targetSquare;
+        let destinationSqaureCoord = destinationSqaure;
+
+        let tRank = targetSquareCoord[0];
+        let tFile = targetSquareCoord[1];
+
+        let dRank = destinationSqaureCoord[0];
+        let dFile = destinationSqaureCoord[1];
+
+
+        let pieceInst = this.board[tRank][tFile];
+
+        if(pieceInst instanceof Piece){
+            let epState = this.enpassant;
+            if(this.isMoveLegal(pieceInst, targetSquareCoord, destinationSqaureCoord)){
+                console.log("LEGAL MOVE");
+                // move
+                // if(this.epState == this.enpassant && this.enpassant){
+                //     this.enpassant = false;
+                //     console.log("ENPASSANT Retracted")
+                // } else {
+                //     console.log("Allow ENPASSANT", this.enpassant)
+                // }
+                this.board[tRank][tFile] = 0; 
+                this.board[dRank][dFile] = pieceInst;
+
+                this.turn = (this.turn+1)%2;
+            } else {
+                console.log("ILLEGAL MOVE");
+            }
+        }
     }
 }
 

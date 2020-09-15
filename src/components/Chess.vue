@@ -37,6 +37,7 @@ export default {
   props: ["playStatus", "facingMode"],
   data: () => ({
     chessInst: gameInst.board,
+    turn: gameInst.turn,
     dotFlag: false,
     dotBoard: [
       [false, false, false, false, false, false, false, false],
@@ -47,7 +48,9 @@ export default {
       [false, false, false, false, false, false, false, false],
       [false, false, false, false, false, false, false, false],
       [false, false, false, false, false, false, false, false]
-    ]
+    ],
+
+    selectedPiece: false
   }),
   methods: {
     changeAddressSpace(i, j) {
@@ -87,31 +90,38 @@ export default {
       }
       return file + rank;
     },
-    handleClick(p,q) {
-        let i,j;
-        if(this.facingMode){
-            [i,j] = [8-p,q]
-        } else {
-            [i,j] = [p-1,q]
-        }
-        
+    handleClick(p, q) {
+      let i, j;
+      if (this.facingMode) {
+        [i, j] = [8 - p, q - 1]; // coordinate transformation
+      } else {
+        [i, j] = [p - 1, 8 - q]; // coordinate transformation
+      }
 
-        if(!this.dotFlag){
-            for(let i in this.dotBoard){
-                for(let j in this.dotBoard[i]){
-                    this.dotBoard[i][j] = true
-                }
+      if (!this.selectedPiece) {
+        if (!this.dotFlag) {
+          if (this.chessInst[i][j] != 0) {
+            for (let i in this.dotBoard) {
+              for (let j in this.dotBoard[i]) {
+                this.dotBoard[i][j] = true;
+              }
             }
-            this.dotFlag = true
-        }
-        else{
-            for(let i in this.dotBoard){
-                for(let j in this.dotBoard[i]){
-                    this.dotBoard[i][j] = false
-                }
+            this.dotFlag = true;
+            this.selectedPiece = [i, j];
+          }
+        } else {
+          for (let i in this.dotBoard) {
+            for (let j in this.dotBoard[i]) {
+              this.dotBoard[i][j] = false;
             }
-            this.dotFlag = false
+          }
+          this.dotFlag = false;
         }
+      } else {
+        gameInst.movePiece(this.selectedPiece, [i, j]);
+        this.selectedPiece = false;
+        this.dotFlag = false;
+      }
     }
   },
   watch: {}
